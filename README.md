@@ -79,6 +79,11 @@ otherwise pull the relevant code into a separate function, and re-scope there:
 You can, of course, simply not use `with-scoped-vars`, and this problem goes away. 
 However, in that case you have to remember to call `.get()` on scoped-vars (at the read-site).
 
+## Requirements
+
+- Java 24 (or greater)
+- Clojure 1.12.0 (or greater)
+
 ## License
 
 Copyright © 2025 Dimitrios Piliouras
