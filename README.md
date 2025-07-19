@@ -2,8 +2,8 @@
 
 ## What
 
-A tiny (30 LOC) Clojure library for leveraging `java.lang.ScopedValue`. 
-It introduces 2 macros, and a naming convention (i.e. `$...$`).
+A tiny (40 LOC) Clojure library for leveraging `java.lang.ScopedValue`. 
+It introduces 3 macros:
 
 1. `defscoped`: declares a scoped-var
 2. `scoping`: (re)binds one or more (already declared) scoped-vars

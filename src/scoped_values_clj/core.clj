@@ -22,17 +22,26 @@
                       (concat args [`(->DerefableScopedValue)]))]
     `(def ~symb ~@body)))
 
+(defn carrier*
+  [bindings]
+  (let [[[s v] & more] (partition 2 bindings)]
+    (reduce
+      (fn [c [s v]]
+        `(.where ~c (.-v ~s) ~v))
+      `(ScopedValue/where (.-v ~s) ~v)
+      more)))
+
 (defmacro scoping
   "Like `clojure.core/binding, but for `ScopedValue`, rather than `ThreadLocal`."
   [bindings & body]
   (assert (vector? bindings) "`scoping` expects a vector of <bindings>")
   (assert (even? (count bindings)) "`scoping` expects an even number of <bindings>")
-  (let [[[s v] & more] (partition 2 bindings)
-        carrier (reduce
-                  (fn [c [s v]]
-                    `(.where ~c (.-v ~s) ~v))
-                  `(ScopedValue/where (.-v ~s) ~v)
-                  more)]
-    `(try ;; body may return nil, which will cause .call to throw NPE
-       (.call ~carrier (fn [] ~@body))
-       (catch NullPointerException _# nil))))
+  `(let [nil# (Object.)
+         ret# (-> ~(carrier* bindings)
+                   (.call (fn [] ;;can't return nil from in here
+                            (if-some [x# (do ~@body)]
+                              x#
+                              nil#))))]
+     (if (identical? ret# nil#)
+       nil
+       ret#)))
