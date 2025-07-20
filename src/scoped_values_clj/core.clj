@@ -27,8 +27,8 @@
   (let [[[s v] & more] (partition 2 bindings)]
     (reduce
       (fn [c [s v]]
-        `(.where ~c (.-v ~s) ~v))
-      `(ScopedValue/where (.-v ~s) ~v)
+        `(.where ~c (.v ~s) ~v))
+      `(ScopedValue/where (.v ~s) ~v)
       more)))
 
 (defmacro scoping

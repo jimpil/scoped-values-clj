@@ -2,6 +2,8 @@
   (:require [clojure.test :refer :all]
             [scoped-values-clj.core :refer :all]))
 
+(set! *warn-on-reflection* true)
+
 (defscoped NAME "Scoped name doc-string")
 (defscoped LANG "Scoped language doc-string")
 
