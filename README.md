@@ -40,6 +40,19 @@ The important thing here is the use of `@` (i.e. `deref`), which is the equivale
 ### Nesting
 Re-scoping (i.e. nested `scoping`) is fully supported, just like re-binding (via `binding`).
 
+## Caveats/Limitations
+
+Unfortunately, when declaring scoped-values via `defscoped`, what you get is actually a wrapper type 
+(i.e. `DerefableScopedValue`), which implements `clojure.lang.IDeref`. You see, it's kind of impossible to have 
+a raw `java.lang.ScopedValue`, or a proxy of it, because:
+
+1. `clojure.lang.IDeref` is **not** a protocol, so it cannot be extended
+2. `java.lang.ScopedValue` is a **final** class, so it cannot be inherited from
+
+Therefore, until the Clojure team adds native support, we have to deal with some kind of wrapper type, and that presents
+a challenge, because now, code that deals with instances created via `defscoped` VS _native_ ones, has to look different! 
+More specifically, you cannot call `deref` on a _native_ `java.lang.ScopedValue`, so you have to manually call `.get` on it.
+
 ## Requirements
 
 - Java 24 (or greater)

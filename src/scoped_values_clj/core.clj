@@ -15,6 +15,12 @@
   (-> (ScopedValue/newInstance)
       (DerefableScopedValue.)))
 
+(defn unwrap*
+  ^ScopedValue [dsv]
+  (if (instance? DerefableScopedValue dsv)
+    (.v ^DerefableScopedValue dsv)
+    dsv))
+
 (defmacro defscoped
   [sym & args]
   (let [[symb body] (tools.macro/name-with-attributes
@@ -27,8 +33,8 @@
   (let [[[s v] & more] (partition 2 bindings)]
     (reduce
       (fn [c [s v]]
-        `(.where ~c (.v ~s) ~v))
-      `(ScopedValue/where (.v ~s) ~v)
+        `(.where ~c (unwrap* ~s) ~v))
+      `(ScopedValue/where (unwrap* ~s) ~v)
       more)))
 
 (defmacro scoping
