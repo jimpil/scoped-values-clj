@@ -8,7 +8,7 @@
 (deftype DerefableScopedValue
   [^ScopedValue v]
   IDeref
-  (deref [_] (.get v)))
+  (deref [_] (when (.isBound v) (.get v))))
 
 (defn ->DerefableScopedValue
   ^DerefableScopedValue []
