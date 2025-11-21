@@ -37,6 +37,32 @@ where `do-something!` can be anything that (presumably) reads the scoped-var(s):
 ```
 The important thing here is the use of `@` (i.e. `deref`), which is the equivalent of `ScopedValue::get` in Java.
 
+### Macro-expansion
+The above `scoping` expression expands to the following:
+
+```clj
+(let*
+ [nil__303__auto__ (new java.lang.Object)
+  ret__304__auto__
+  (.
+   (.
+    (java.lang.ScopedValue/where 
+      (scoped-values-clj.core/unwrap* NAME) "duke")
+    where 
+      (scoped-values-clj.core/unwrap* LANG) "java")
+   call
+   (fn*
+    ([]
+     (let*
+      [temp__5827__auto__ (do (do-something!))]
+      (if (clojure.core/nil? temp__5827__auto__)
+       nil__303__auto__
+       (let* [x__305__auto__ temp__5827__auto__] x__305__auto__))))))]
+ (if (clojure.core/identical? ret__304__auto__ nil__303__auto__) 
+   nil 
+   ret__304__auto__))
+```
+
 ### Nesting
 Re-scoping (i.e. nested `scoping`) is fully supported, just like re-binding (via `binding`).
 
