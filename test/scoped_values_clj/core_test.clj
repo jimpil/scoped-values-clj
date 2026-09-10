@@ -44,4 +44,13 @@
                         "Name is lambda"  \newline
                         "Lang is clojure" \newline)]
       (is (= expected out-str))))
+
+  (testing "scope propagation to child thread"
+    (scoping [NAME "duke"
+              LANG "java"]
+      (let [cs (current-scope)
+            fut (future
+                  (with-scope cs (= cs (current-scope))))]
+        (is (= 2 (count cs)))
+        (is (true? @fut)))))
   )

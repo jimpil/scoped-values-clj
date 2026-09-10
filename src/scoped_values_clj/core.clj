@@ -1,7 +1,7 @@
 (ns scoped-values-clj.core
   (:require [clojure.tools.macro :as tools.macro])
   (:import [clojure.lang IDeref]
-           [java.lang ScopedValue]))
+           [java.lang ScopedValue ScopedValue$Carrier]))
 
 (set! *warn-on-reflection* true)
 
@@ -16,10 +16,8 @@
       (DerefableScopedValue.)))
 
 (defn unwrap*
-  ^ScopedValue [dsv]
-  (if (instance? DerefableScopedValue dsv)
-    (.v ^DerefableScopedValue dsv)
-    dsv))
+  ^ScopedValue [^DerefableScopedValue dsv]
+  (.v dsv))
 
 (defmacro defscoped
   [sym & args]
@@ -37,17 +35,58 @@
       `(ScopedValue/where (unwrap* ~s) ~v)
       more)))
 
+(def SCOPED-VARS (->DerefableScopedValue))
+(def deref2 (comp deref deref))
+
+(defn current-scope
+  "Captures the current scope (if any).
+   Returns a map of Var => bound-value."
+  []
+  (let [vars @SCOPED-VARS]
+    (zipmap vars (map deref2 vars))))
+
+(defn call*
+  [^ScopedValue$Carrier carrier thunk]
+  (let [nil-sentinel (Object.)
+        ret (.call carrier
+              (fn [] ;;can't return nil from in here
+                (if-some [body-ret (thunk)]
+                  body-ret
+                  nil-sentinel)))]
+    (if (identical? ret nil-sentinel)
+      nil
+      ret)))
+
 (defmacro scoping
   "Like `clojure.core/binding, but for `ScopedValue`, rather than `ThreadLocal`."
   [bindings & body]
   (assert (vector? bindings) "`scoping` expects a vector of <bindings>")
   (assert (even? (count bindings)) "`scoping` expects an even number of <bindings>")
-  `(let [nil# (Object.)
-         ret# (-> ~(carrier* bindings)
-                   (.call (fn [] ;;can't return nil from in here
-                            (if-some [x# (do ~@body)]
-                              x#
-                              nil#))))]
-     (if (identical? ret# nil#)
-       nil
-       ret#)))
+  `(call*
+     ~(carrier*
+        (conj bindings
+              `SCOPED-VARS
+              `(into (or @SCOPED-VARS #{})
+                     ~(mapv resolve (take-nth 2 bindings)))))
+     (fn [] ~@body)))
+
+(defmacro with-scope
+  "Executes <body> within the context of the
+   provided <scope> - e.g. captured by `current-scope`.
+   Useful for passing down scope to child threads.
+   The pattern is as follows:
+   (scoping [...]                  ;; set up initial bindings
+     (let [parent (current-scope)] ;; fetch current scope in this thread
+       (future
+         (with-scope parent        ;; restore parent's scope in child thread
+           (current-scope)))))     ;; inspect current-scope in child thread (equals parent)"
+  [scope & body]
+  `(if-some [curr# (not-empty ~scope)]
+     (let [[[s# v#] & more#] curr#
+           carrier# (reduce
+                      (fn [~(with-meta 'c {:tag `ScopedValue$Carrier}) [s# v#]]
+                        (.where ~'c (unwrap* @s#) v#))
+                      (ScopedValue/where (unwrap* @s#) v#)
+                      (concat more# [[#'SCOPED-VARS (set (keys curr#))]]))]
+          (call* carrier# (fn [] ~@body)))
+     (do ~@body)))
