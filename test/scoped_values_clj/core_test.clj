@@ -46,11 +46,20 @@
       (is (= expected out-str))))
 
   (testing "scope propagation to child thread"
-    (scoping [NAME "duke"
-              LANG "java"]
-      (let [cs (current-scope)
-            fut (future
-                  (with-scope cs (= cs (current-scope))))]
-        (is (= 2 (count cs)))
-        (is (true? @fut)))))
+    (testing "manually"
+      (scoping [NAME "duke"
+                LANG "java"]
+        (let [cs (current-scope)
+              fut (future
+                    (with-scope cs (= cs (current-scope))))]
+          (is (= 2 (count cs)))
+          (is (true? @fut)))))
+
+    (testing "via scoped-fn"
+      (scoping [NAME "duke"
+                LANG "java"]
+        (let [f (scoped-fn [] [@NAME @LANG])
+              fut (future (f))]
+          (is (= ["duke" "java"] @fut)))))
+    )
   )

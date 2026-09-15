@@ -26,7 +26,7 @@
                       (concat args [`(->DerefableScopedValue)]))]
     `(def ~symb ~@body)))
 
-(defn carrier*
+(defn- carrier*
   [bindings]
   (let [[[s v] & more] (partition 2 bindings)]
     (reduce
@@ -35,8 +35,9 @@
       `(ScopedValue/where (unwrap* ~s) ~v)
       more)))
 
-(def SCOPED-VARS (->DerefableScopedValue))
-(def deref2 (comp deref deref))
+;; Implement the notion current-scope using a ScopedValue
+(defonce SCOPED-VARS (->DerefableScopedValue))
+(defonce deref2 (comp deref deref))
 
 (defn current-scope
   "Captures the current scope (if any).
@@ -45,7 +46,7 @@
   (let [vars @SCOPED-VARS]
     (zipmap vars (map deref2 vars))))
 
-(defn call*
+(defn- call*
   [^ScopedValue$Carrier carrier thunk]
   (let [nil-sentinel (Object.)
         ret (.call carrier
@@ -90,3 +91,15 @@
                       (concat more# [[#'SCOPED-VARS (set (keys curr#))]]))]
           (call* carrier# (fn [] ~@body)))
      (do ~@body)))
+
+(defn scoped-fn*
+  "Like `clojure.core/bound-fn*`, but for ScopedValue (instead of ThreadLocal)."
+  [f]
+  (let [current (current-scope)]
+    (fn [& args]
+      (with-scope current (apply f args)))))
+
+(defmacro scoped-fn
+  "Like `clojure.core/bound-fn`, but for ScopedValue (instead of ThreadLocal)."
+  [& fntail]
+  `(scoped-fn* (fn ~@fntail)))
