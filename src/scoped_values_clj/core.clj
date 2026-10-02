@@ -16,8 +16,10 @@
       (DerefableScopedValue.)))
 
 (defn unwrap*
-  ^ScopedValue [^DerefableScopedValue dsv]
-  (.v dsv))
+  ^ScopedValue [dsv]
+  (if (instance? DerefableScopedValue dsv)
+    (.v ^DerefableScopedValue dsv)
+    dsv))
 
 (defmacro defscoped
   [sym & args]
