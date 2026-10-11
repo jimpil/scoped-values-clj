@@ -1,4 +1,4 @@
-(defproject com.github.jimpil/scoped-values-clj "0.1.1-SNAPSHOT"
+(defproject com.github.jimpil/scoped-values-clj "0.1.1"
   :description "Facilities for leveraging java.lang.ScopedValue in Clojure"
   :url "https://github.com/jimpil/scoped-values-clj"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
