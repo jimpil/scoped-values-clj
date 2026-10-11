@@ -18,6 +18,10 @@ It introduces 4 macros, and 4 functions.
 Without getting into too much detail, `ScopedValue` is essentially a better `ThreadLocal`,
 especially in-lieu of virtual-threads. See the [JEP](https://openjdk.org/jeps/446).
 
+## Where 
+
+[![Clojars Project](https://clojars.org/com.github.jimpil/scoped-values-clj/latest-version.svg)](https://clojars.org/com.github.jimpil/scoped-values-clj)
+
 ## How
 I like to name such 'global' vars with upper-case, to make them stand out visually 
 (similarly to how dynamic vars must start/end with `*`). So let's declare a couple:
