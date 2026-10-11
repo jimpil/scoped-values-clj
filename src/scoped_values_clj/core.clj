@@ -41,7 +41,7 @@
 (defonce SCOPED-VARS (->DerefableScopedValue))
 (defonce deref2 (comp deref deref))
 
-(defn current-scope
+(defn get-thread-scope
   "Captures the current scope (if any).
    Returns a map of Var => bound-value."
   []
@@ -97,7 +97,7 @@
 (defn scoped-fn*
   "Like `clojure.core/bound-fn*`, but for ScopedValue (instead of ThreadLocal)."
   [f]
-  (let [current (current-scope)]
+  (let [current (get-thread-scope)]
     (fn [& args]
       (with-scope current (apply f args)))))
 
@@ -105,3 +105,14 @@
   "Like `clojure.core/bound-fn`, but for ScopedValue (instead of ThreadLocal)."
   [& fntail]
   `(scoped-fn* (fn ~@fntail)))
+
+(defn scoped-future-call
+  "Like `clojure.core/future-call`, but also conveys the current thread scope."
+  [f]
+  (let [f (scoped-fn* f)]
+    (future-call f)))
+
+(defmacro scoped-future
+  "Like `clojure.core/future`, but also conveys the current thread scope."
+  [& body]
+  `(scoped-future-call (^{:once true} fn* [] ~@body)))

@@ -49,9 +49,9 @@
     (testing "manually"
       (scoping [NAME "duke"
                 LANG "java"]
-        (let [cs (current-scope)
+        (let [cs (get-thread-scope)
               fut (future
-                    (with-scope cs (= cs (current-scope))))]
+                    (with-scope cs (= cs (get-thread-scope))))]
           (is (= 2 (count cs)))
           (is (true? @fut)))))
 

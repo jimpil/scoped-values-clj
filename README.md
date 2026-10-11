@@ -10,7 +10,7 @@ It introduces 4 macros, and 2 functions.
 3. `with-scope`: like `clojure.core/with-bindings`, but for scoped Vars
 4. `scoped-fn*`: like `clojure.core/bound-fn*` (uses `with-scope`)
 5. `scoped-fn`: like `clojure.core/bound-fn` (uses `scoped-fn*`)
-6. `current-scope`: like `clojure.core/get-thread-bindings`
+6. `get-thread-scope`: like `clojure.core/get-thread-bindings`
 
 ## Why
 Without getting into too much detail, `ScopedValue` is essentially a better `ThreadLocal`,
@@ -41,9 +41,10 @@ where `do-something!` can be anything that (presumably) reads the scoped-var(s):
 ```
 The important thing here is the use of `@` (i.e. `deref`), which is the equivalent of `ScopedValue::get` in Java.
 
-### Current scope
-You can capture the current scope with `current-scope`, and reuse/propagate it with `with-scope`, however, 
-chances are you probably want to use `scoped-fn` instead.
+### Conveyance
+Unlike `ThreadLocal` bindings, `ScopedValue` ones are **not** auto-conveyed to future/agent threads.   
+You can however, capture the current scope with `get-thread-scope`, and manually reuse/propagate it with `with-scope`.
+That's what `scoped-fn*` essentially does. Alternatively, a `scoped-future` helper macro exists.
 
 ### Nesting
 Re-scoping (i.e. nested `scoping`) is fully supported, just like re-binding (via `binding`).
