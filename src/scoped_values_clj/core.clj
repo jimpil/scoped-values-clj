@@ -48,7 +48,7 @@
   (let [vars @SCOPED-VARS]
     (zipmap vars (map deref2 vars))))
 
-(defn- call*
+(defn call*
   [^ScopedValue$Carrier carrier thunk]
   (let [nil-sentinel (Object.)
         ret (.call carrier
@@ -109,8 +109,7 @@
 (defn scoped-future-call
   "Like `clojure.core/future-call`, but also conveys the current thread scope."
   [f]
-  (let [f (scoped-fn* f)]
-    (future-call f)))
+  (future-call (scoped-fn* f)))
 
 (defmacro scoped-future
   "Like `clojure.core/future`, but also conveys the current thread scope."

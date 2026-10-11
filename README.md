@@ -3,14 +3,16 @@
 ## What
 
 A tiny (~100 LOC) Clojure library for leveraging `java.lang.ScopedValue`. 
-It introduces 4 macros, and 2 functions.
+It introduces 4 macros, and 4 functions.
 
-1. `defscoped`: declares a scoped Var (like declaring a dynamic Var)
-2. `scoping`: like `clojure.core/binding`, but for scoped Vars
-3. `with-scope`: like `clojure.core/with-bindings`, but for scoped Vars
-4. `scoped-fn*`: like `clojure.core/bound-fn*` (uses `with-scope`)
-5. `scoped-fn`: like `clojure.core/bound-fn` (uses `scoped-fn*`)
-6. `get-thread-scope`: like `clojure.core/get-thread-bindings`
+1. `defscoped`: declares a scoped Var (analogous to declaring a :dynamic Var)
+2. `scoping`: analogous to `clojure.core/binding`
+3. `with-scope`: analogous to `clojure.core/with-bindings`
+4. `scoped-fn*`: analogous to `clojure.core/bound-fn*` 
+5. `scoped-fn`: analogous to `clojure.core/bound-fn`
+6. `get-thread-scope`: analogous to `clojure.core/get-thread-bindings`
+7. `scoped-future-call`: analogous to `clojure.core/future-call`
+8. `scoped-future`: analogous to `clojure.core/future`
 
 ## Why
 Without getting into too much detail, `ScopedValue` is essentially a better `ThreadLocal`,
@@ -44,12 +46,12 @@ The important thing here is the use of `@` (i.e. `deref`), which is the equivale
 ### Conveyance
 Unlike `ThreadLocal` bindings, `ScopedValue` ones are **not** auto-conveyed to future/agent threads.   
 You can however, capture the current scope with `get-thread-scope`, and manually reuse/propagate it with `with-scope`.
-That's what `scoped-fn*` essentially does. Alternatively, a `scoped-future` helper macro exists.
+That's what `scoped-fn*` essentially does. Alternatively, a `scoped-future` helper macro is provided.
 
 ### Nesting
 Re-scoping (i.e. nested `scoping`) is fully supported, just like re-binding (via `binding`).
 
-## Caveats/Limitations ()
+## Caveats/Limitations 
 
 Unfortunately, when declaring scoped-values via `defscoped`, what you get is actually a wrapper type 
 (i.e. `DerefableScopedValue`), which implements `clojure.lang.IDeref`. You see, it's kind of impossible to have 
@@ -58,10 +60,10 @@ a raw `java.lang.ScopedValue`, or a proxy of it, because:
 1. `clojure.lang.IDeref` is **not** a protocol, so it cannot be extended
 2. `java.lang.ScopedValue` is a **final** class, so it cannot be inherited from
 
-Therefore, until the Clojure team adds native deref support (see [CLJ-2926](https://clojure.atlassian.net/browse/CLJ-2926)), 
+Therefore, until Clojure adds native `deref` support (see [CLJ-2926](https://clojure.atlassian.net/browse/CLJ-2926)), 
 we have to deal with some kind of wrapper type, and that presents a challenge, because now, code that deals with instances 
-created via `defscoped` VS _native_ ones, has to look different!More specifically, you cannot call `deref` on a _native_ 
-`java.lang.ScopedValue`, so you have to manually call `.get` on it.
+created via `defscoped` VS _native_ ones, has to look different! More specifically, you cannot call `deref` on a _native_ 
+`java.lang.ScopedValue` - you have to manually call `.get` on it.
 
 ## Requirements
 

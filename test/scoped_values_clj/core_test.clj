@@ -61,5 +61,11 @@
         (let [f (scoped-fn [] [@NAME @LANG])
               fut (future (f))]
           (is (= ["duke" "java"] @fut)))))
+
+    (testing "via scoped-future"
+      (scoping [NAME "duke"
+                LANG "java"]
+        (let [fut (scoped-future [@NAME @LANG])]
+          (is (= ["duke" "java"] @fut)))))
     )
   )
